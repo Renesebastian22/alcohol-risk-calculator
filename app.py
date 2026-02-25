@@ -6,6 +6,8 @@ import numpy as np
 # SETTINGS
 # =====================================================
 
+
+
 COHORT_MIN_AGE = 15
 COHORT_MAX_AGE = 79
 YEARS = 5
@@ -191,15 +193,65 @@ def five_year_alcohol_effect(disease, age, sex, consumption):
 
 # =====================================================
 # UI
+## =====================================================
+# UI – HEADER WITH LOGO
 # =====================================================
 
-st.title("5-Year Alcohol-Related Disease Risk Calculator")
+col1, col2 = st.columns([1, 5])
 
-age = st.slider("Age", COHORT_MIN_AGE, COHORT_MAX_AGE, 45)
-sex = st.selectbox("Sex", ["Male", "Female"])
-consumption = st.slider("Alcohol consumption (grams per day)", 0, 120, 30)
+with col1:
+    st.image("logo.png", width=120)
 
-if st.button("Calculate Risk"):
+with col2:
+    st.markdown(
+        """
+        # Alcohol-Related Disease Risk Calculator  
+        ### 10-Year Absolute Risk Estimation Tool
+        """
+    )
+
+st.markdown("---")
+
+st.markdown(
+"""
+**Disclaimer**
+
+This tool provides population-based absolute risk estimates derived from
+epidemiological studies and calibrated to national incidence data.
+It is intended for public health awareness, research, and policy purposes.
+It does **not** constitute medical advice, diagnosis, or treatment guidance.
+Individual risk may vary based on factors not included in this model.
+"""
+)
+
+st.markdown("---")
+
+# =====================================================
+# USER INPUT SECTION
+# =====================================================
+
+st.markdown("## Individual Characteristics")
+
+colA, colB, colC = st.columns(3)
+
+with colA:
+    age = st.slider("Age", COHORT_MIN_AGE, COHORT_MAX_AGE, 45)
+
+with colB:
+    sex = st.selectbox("Sex", ["Male", "Female"])
+
+with colC:
+    consumption = st.slider("Alcohol (grams/day)", 0, 120, 30)
+
+st.markdown("---")
+
+calculate = st.button("Calculate 10-Year Risk")
+
+# =====================================================
+# RESULTS
+# =====================================================
+
+if calculate:
 
     results = []
 
@@ -211,8 +263,8 @@ if st.button("Calculate Risk"):
 
         results.append({
             "Disease": d.replace("_", " ").title(),
-            "5y Risk (%)": round(100 * r_exp, 3),
-            "5y Risk (0 g/day) (%)": round(100 * r_cf, 3),
+            "10y Risk (%)": round(100 * r_exp, 3),
+            "10y Risk (0 g/day) (%)": round(100 * r_cf, 3),
             "Excess Risk (%)": round(100 * excess, 3),
             "Attributable Fraction (%)": round(100 * af, 2),
             "Risk Ratio": round(rr, 3) if not np.isnan(rr) else "-"
@@ -220,8 +272,26 @@ if st.button("Calculate Risk"):
 
     df = pd.DataFrame(results)
 
-    st.subheader("Results")
+    st.markdown("## Results")
     st.dataframe(df, use_container_width=True)
 
-    st.subheader("Alcohol-Attributable Excess Risk")
+    # ---- Total alcohol-attributable excess risk (policy-safe approach) ----
+    total_excess = df["Excess Risk (%)"].sum()
+
+    st.markdown("---")
+    st.markdown(
+        f"### Estimated Total 10-Year Alcohol-Attributable Excess Risk: **{total_excess:.2f}%**"
+    )
+
+    st.markdown(
+        """
+        *Total excess risk is calculated as the sum of disease-specific
+        alcohol-attributable excess absolute risks. This assumes independence
+        between disease outcomes and is intended for public health interpretation.*
+        """
+    )
+
+    st.markdown("---")
+
+    st.markdown("### Alcohol-Attributable Excess Risk by Disease")
     st.bar_chart(df.set_index("Disease")["Excess Risk (%)"])
