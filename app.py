@@ -213,7 +213,7 @@ with col2:
         """
         <div style="line-height:1.1;">
           <div style="font-size:34px; font-weight:800; color:#6A0DAD;">
-            Ministrzdravi's Behavior to Disease Risk Calculator
+            Ministrzdravi Behavior to Disease Risk Calculator
           </div>
           <div style="font-size:18px; font-weight:500; color:#444444; margin-top:6px;">
             10-year risk of Disease From Behavioral Change Tool
@@ -229,9 +229,9 @@ st.markdown(
 """
 **Disclaimer**
 
-This tool provides population-based absolute risk estimates derived from
+This tool provides population-based risk estimates derived from
 epidemiological studies and calibrated to national incidence data.
-It is intended for public health awareness, research, and policy purposes.
+It is intended for public health awareness and policy purposes.
 It does **not** constitute medical advice, diagnosis, or treatment guidance.
 Individual risk may vary based on factors not included in this model.
 """
