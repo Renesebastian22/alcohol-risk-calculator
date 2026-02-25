@@ -197,7 +197,13 @@ def five_year_alcohol_effect(disease, age, sex, consumption):
 # UI – HEADER WITH LOGO
 # =====================================================
 
-col1, col2 = st.columns([1, 5])
+import altair as alt
+
+# =====================================================
+# UI – HEADER WITH LOGO + STYLED TITLE/SUBTITLE
+# =====================================================
+
+col1, col2 = st.columns([1, 6])
 
 with col1:
     st.image("logo.png", width=120)
@@ -205,9 +211,16 @@ with col1:
 with col2:
     st.markdown(
         """
-        # Alcohol-Related Disease Risk Calculator  
-        ### 10-Year Absolute Risk Estimation Tool
-        """
+        <div style="line-height:1.1;">
+          <div style="font-size:34px; font-weight:800; color:#6A0DAD;">
+            Ministrzdravi's Behavior to Disease Risk Calculator
+          </div>
+          <div style="font-size:18px; font-weight:500; color:#444444; margin-top:6px;">
+            10-year risk of Disease From Behavioral Change Tool
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
 st.markdown("---")
@@ -263,8 +276,8 @@ if calculate:
 
         results.append({
             "Disease": d.replace("_", " ").title(),
-            "10y Risk (%)": round(100 * r_exp, 3),
-            "10y Risk (0 g/day) (%)": round(100 * r_cf, 3),
+            "10-Year Risk (%)": round(100 * r_exp, 3),
+            "10-Year Risk (0 g/day) (%)": round(100 * r_cf, 3),
             "Excess Risk (%)": round(100 * excess, 3),
             "Attributable Fraction (%)": round(100 * af, 2),
             "Risk Ratio": round(rr, 3) if not np.isnan(rr) else "-"
@@ -272,26 +285,60 @@ if calculate:
 
     df = pd.DataFrame(results)
 
+    # ===============================
+    # RESULTS TABLE
+    # ===============================
+
     st.markdown("## Results")
     st.dataframe(df, use_container_width=True)
 
-    # ---- Total alcohol-attributable excess risk (policy-safe approach) ----
+    # ===============================
+    # TOTAL ALCOHOL-ATTRIBUTABLE RISK
+    # ===============================
+
     total_excess = df["Excess Risk (%)"].sum()
 
     st.markdown("---")
     st.markdown(
-        f"### Estimated Total 10-Year Alcohol-Attributable Excess Risk: **{total_excess:.2f}%**"
+        f"""
+        ### Estimated Total 10-Year Alcohol-Attributable Excess Risk  
+        ## **{total_excess:.2f}%**
+        """
     )
 
     st.markdown(
         """
         *Total excess risk is calculated as the sum of disease-specific
-        alcohol-attributable excess absolute risks. This assumes independence
-        between disease outcomes and is intended for public health interpretation.*
+        alcohol-attributable excess absolute risks. This assumes statistical
+        independence between disease outcomes and is intended for
+        public health interpretation.*
         """
     )
 
     st.markdown("---")
 
+    # ===============================
+    # DARK YELLOW BAR CHART
+    # ===============================
+
+    import altair as alt
+
     st.markdown("### Alcohol-Attributable Excess Risk by Disease")
-    st.bar_chart(df.set_index("Disease")["Excess Risk (%)"])
+
+    bar_df = df[["Disease", "Excess Risk (%)"]].copy()
+
+    chart = (
+        alt.Chart(bar_df)
+        .mark_bar(color="#B8860B")  # dark yellow
+        .encode(
+            x=alt.X("Disease:N", sort="-y", title=""),
+            y=alt.Y("Excess Risk (%):Q", title="Excess Risk (%)"),
+            tooltip=[
+                "Disease",
+                alt.Tooltip("Excess Risk (%):Q", format=".3f")
+            ],
+        )
+        .properties(height=450)
+    )
+
+    st.altair_chart(chart, use_container_width=True)
